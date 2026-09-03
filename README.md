@@ -14,17 +14,18 @@ A monitor at http://localhost:7777 shows every session and builder on this machi
 
 ## Install
 
-You need the Opus 4.6 build of Claude Code, `python3`, `git`, and `gh` (for shipping).
+You need Claude Code with access to `claude-opus-4-6`, `python3`, `git`, and `gh` for shipping.
 
 <details>
 <summary>Installing the prerequisites</summary>
 
 Assumes you already have Node, Python 3, and a GitHub account.
 
-Claude Code, the build that ships Opus 4.6. Always start it with this exact command; a plain `claude` may resolve to a different build:
+Claude Code, any recent version. Start it with `--dangerously-skip-permissions` so builders are not interrupted by permission prompts:
 
 ```
-npx @anthropic-ai/claude-code@2.1.81 --dangerously-skip-permissions
+npm install -g @anthropic-ai/claude-code
+claude --dangerously-skip-permissions
 ```
 
 The first launch asks you to sign in.
@@ -38,7 +39,7 @@ gh auth login
 
 </details>
 
-From GitHub:
+Inside Claude Code:
 
 ```
 /plugin marketplace add cosmin220304/gauntlet
@@ -48,7 +49,7 @@ From GitHub:
 From a local checkout, for trying it out:
 
 ```
-npx @anthropic-ai/claude-code@2.1.81 --dangerously-skip-permissions --plugin-dir /path/to/gauntlet
+claude --dangerously-skip-permissions --plugin-dir /path/to/gauntlet
 ```
 
 ## Use
