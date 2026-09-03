@@ -1,0 +1,14 @@
+{
+  "name": "gauntlet",
+  "owner": {
+    "name": "Cosmin Aftanase"
+  },
+  "plugins": [
+    {
+      "name": "gauntlet",
+      "source": "./",
+      "description": "Product-owner orchestration of Opus 4.6 builders with a live monitor."
+    }
+  ],
+  "description": "Fable as product owner, Opus 4.6 builders under a context cap, live monitor, three user gates."
+}
