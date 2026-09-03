@@ -69,6 +69,10 @@ The monitor starts with the first run; open http://localhost:7777. Start it by h
 - `agents/gauntlet-builder.md`: the builder's model, turn limit, and working rules.
 - `commands/ship-it.md`: how a run becomes a PR. Edit the commit and PR conventions there.
 
+## Output style
+
+The plugin ships a "Simple language" output style and forces it on while the plugin is enabled: Simplified Technical English, active voice, one idea per sentence, bullets over paragraphs. It applies to every conversation, not only gauntlet runs. Disable the plugin to get your own style back, or edit `output-styles/simple-language.md` and drop the `force-for-plugin` line to make it optional.
+
 ## Layout
 
 ```
@@ -78,4 +82,5 @@ agents/gauntlet-builder.md
 commands/ship-it.md
 hooks/hooks.json        PreToolUse hook wiring
 hooks/context-cap.py    blocks a gauntlet builder's next tool call past the cap
+output-styles/simple-language.md
 ```
