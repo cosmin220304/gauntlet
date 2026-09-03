@@ -54,9 +54,9 @@ npx @anthropic-ai/claude-code@2.1.81 --dangerously-skip-permissions --plugin-dir
 ## Use
 
 ```
-/gauntlet:run CONNECT-487
-/gauntlet:run docs/plans/einvoice-network.md
-/gauntlet:run "Add e-invoice network support: onboarding flow and submit flow"
+/gauntlet:run SHOP-142
+/gauntlet:run docs/plans/payment-provider.md
+/gauntlet:run "Add a second payment provider: checkout flow and refund flow"
 ```
 
 Answer the three gates. Fixes you ask for at gate 2 become new builder slices and come back to the same gate.

@@ -36,7 +36,7 @@ Write the confirmed understanding into the brief to the repo's plans directory i
 
 ## 3. Split into slices
 
-Default is one slice, one builder. Split only when the work genuinely splits into parts that a second engineer could take without stepping on the first: separate flows, separate modules, separate bounded contexts. E-invoice network support splits into onboarding flow and submit flow. A todo app, a single endpoint with its service and tests, a bug fix: one slice. Parallelism costs coordination and contract decisions; pay it only when the split is obvious. Never split to look busy.
+Default is one slice, one builder. Split only when the work genuinely splits into parts that a second engineer could take without stepping on the first: separate flows, separate modules, separate bounded contexts. A second payment provider splits into the checkout flow and the refund flow. A todo app, a single endpoint with its service and tests, a bug fix: one slice. Parallelism costs coordination and contract decisions; pay it only when the split is obvious. Never split to look busy.
 
 Each slice gets: a name, what it delivers, its boundary (packages, directories, files it owns, plus any shared files it may touch), and what it can assume about its sibling slices (interfaces, names, contracts). Where two slices meet, decide the contract in the brief so both builders build to the same shape.
 

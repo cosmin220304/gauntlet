@@ -50,7 +50,7 @@ def title_of(prompt):
 
 
 def worktree_label(cwd):
-    """('light', 'CONNECT-487-gobl-invoices…') for a worktree; ('light', '') for a plain checkout."""
+    """('shop', 'SHOP-142-refund-flow') for a worktree; ('shop', '') for a plain checkout."""
     m = re.search(r"/([^/]+)/\.claude/worktrees/([^/]+)$", cwd)
     if m: return m.group(1), m.group(2)
     return os.path.basename(cwd.rstrip("/")) or cwd, ""
