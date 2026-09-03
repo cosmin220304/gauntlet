@@ -16,29 +16,6 @@ A monitor at http://localhost:7777 shows every session and builder on this machi
 
 You need Claude Code with access to `claude-opus-4-6`, `python3`, `git`, and `gh` for shipping.
 
-<details>
-<summary>Installing the prerequisites</summary>
-
-Assumes you already have Node, Python 3, and a GitHub account.
-
-Claude Code, any recent version. Start it with `--dangerously-skip-permissions` so builders are not interrupted by permission prompts:
-
-```
-npm install -g @anthropic-ai/claude-code
-claude --dangerously-skip-permissions
-```
-
-The first launch asks you to sign in.
-
-The GitHub CLI, used only by `/gauntlet:ship-it` to push and open the PR:
-
-```
-brew install gh
-gh auth login
-```
-
-</details>
-
 Inside Claude Code:
 
 ```
