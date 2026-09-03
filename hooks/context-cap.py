@@ -5,7 +5,7 @@ import json, os, sys
 CAP = int(os.environ.get("GAUNTLET_CONTEXT_CAP", "130000"))
 
 hook = json.load(sys.stdin)
-if not str(hook.get("agent_type", "")).startswith("gauntlet-"):
+if "gauntlet-" not in str(hook.get("agent_type", "")):
     sys.exit(0)
 
 path = os.path.join(

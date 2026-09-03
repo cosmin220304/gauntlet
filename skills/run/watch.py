@@ -117,7 +117,7 @@ def parse_task(path):
     return {
         "reason": reason,
         "id": os.path.basename(path)[6:-6],
-        "type": meta.get("agentType", ""),
+        "type": meta.get("agentType", "").split(":")[-1],
         "name": meta.get("description", "") or os.path.basename(path)[6:-6],
         "started": first, "ended": last, "mtime": os.path.getmtime(path),
         "running": running,
