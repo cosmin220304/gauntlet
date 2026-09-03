@@ -61,7 +61,7 @@ npx @anthropic-ai/claude-code@2.1.81 --dangerously-skip-permissions --plugin-dir
 
 Answer the three gates. Fixes you ask for at gate 2 become new builder slices and come back to the same gate.
 
-The monitor starts with the first run; open http://localhost:7777. Start it by hand with `python3 skills/run/watch.py` from the plugin directory. `GAUNTLET_WATCH_PORT` changes the port.
+The first run starts the monitor if nothing is listening on port 7777; open http://localhost:7777. It lists every Claude Code session on your machine, not only gauntlet runs, because it reads the local transcripts under `~/.claude/projects`. It sends nothing anywhere. The Changes tab loads its diff viewer from a CDN, so it needs internet access in the browser.
 
 ## Knobs
 

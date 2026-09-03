@@ -8,7 +8,7 @@ HOME = os.path.expanduser("~")
 ROOT = f"{HOME}/.claude/projects"
 JOBS = f"{HOME}/.claude/jobs"
 CAP = int(os.environ.get("GAUNTLET_CONTEXT_CAP", "130000"))
-PORT = int(os.environ.get("GAUNTLET_WATCH_PORT", "7777"))
+PORT = 7777
 WINDOW = 24 * 3600
 STATUS_RE = re.compile(r"^(?:Status|Verdict):\s*([A-Z]+)", re.M)
 
