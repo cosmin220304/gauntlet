@@ -9,7 +9,7 @@ ROOT = f"{HOME}/.claude/projects"
 JOBS = f"{HOME}/.claude/jobs"
 CAP = int(os.environ.get("GAUNTLET_CONTEXT_CAP", "130000"))
 PORT = 7777
-WINDOW = 24 * 3600
+WINDOW = 3600
 STATUS_RE = re.compile(r"^(?:Status|Verdict):\s*([A-Z]+)", re.M)
 
 
@@ -515,7 +515,7 @@ function table(tasks){
 
 function render(d){
   const all=d.worktrees.flatMap(w=>w.sessions.map(s=>({...s,wt:w.path,cwd:w.cwd})));
-  if(!all.length){$('#nav').innerHTML='<h1>Worktrees</h1>';$('#main').innerHTML=`<div class=empty><p>Nothing running in the last 24h.</p><p>Start a run from Fable with <code>/gauntlet &lt;spec&gt;</code>. Sessions appear on the left the moment a task spawns.</p></div>`;return;}
+  if(!all.length){$('#nav').innerHTML='<h1>Worktrees</h1>';$('#main').innerHTML=`<div class=empty><p>Nothing active in the last hour.</p><p>Start a run from Fable with <code>/gauntlet:run &lt;spec&gt;</code>. Sessions appear on the left the moment a task spawns.</p></div>`;return;}
   if(!all.some(s=>s.id===sel)) sel=(all.find(s=>s.running)||all[0]).id;
   $('#nav').innerHTML=nav(d);
   const s=all.find(x=>x.id===sel);
