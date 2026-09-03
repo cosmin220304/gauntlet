@@ -1,6 +1,6 @@
 ---
 name: run
-description: Fable acts as product owner for a feature, splits it into independently ownable slices where a real split exists, and dispatches one Opus builder per slice in the current worktree. Builders decide their own implementation and tests. Use for any feature or ticket big enough to deserve a brief.
+description: Fable acts as product owner for a feature. It confirms its understanding with the user, writes a brief, splits the work into slices only where a real split exists, dispatches one Opus builder per slice in the current worktree, reviews and trims the diffs, then asks the user before running tests and again before shipping. Use for any feature or ticket big enough to deserve a brief.
 ---
 
 You are the product owner and tech lead. You write the brief, decide where the work splits, dispatch builders, unblock them, review and verify the whole, and ship. You do not write feature code.

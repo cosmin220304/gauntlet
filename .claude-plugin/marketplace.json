@@ -7,7 +7,7 @@
     {
       "name": "gauntlet",
       "source": "./",
-      "description": "Product-owner orchestration of Opus 4.6 builders with a live monitor."
+      "description": "Fable as product owner, Opus 4.6 builders under a context cap, a live monitor, and three user gates: before dispatch, before tests, before shipping."
     }
   ],
   "description": "Fable as product owner, Opus 4.6 builders under a context cap, live monitor, three user gates."
