@@ -17,31 +17,24 @@ A monitor at http://localhost:7777 shows every session and builder on this machi
 You need the Opus 4.6 build of Claude Code, `python3`, `git`, and `gh` (for shipping).
 
 <details>
-<summary>Installing the prerequisites (macOS)</summary>
+<summary>Installing the prerequisites</summary>
 
-Claude Code, the build that ships Opus 4.6. Needs Node 18 or newer first:
+Assumes you already have Node, Python 3, and a GitHub account.
+
+Claude Code, the build that ships Opus 4.6. Always start it with this exact command; a plain `claude` may resolve to a different build:
 
 ```
-brew install node
 npx @anthropic-ai/claude-code@2.1.81 --dangerously-skip-permissions
 ```
 
-The first launch asks you to sign in. Everything below assumes you start Claude Code with that exact command; a plain `claude` may resolve to a different build without Opus 4.6.
+The first launch asks you to sign in.
 
-Python 3, used by the monitor and the context-cap hook. macOS ships one; check with `python3 --version`, or install a current one:
-
-```
-brew install python
-```
-
-git and gh. gh is only needed for `/gauntlet:ship-it`, which pushes and opens the PR:
+The GitHub CLI, used only by `/gauntlet:ship-it` to push and open the PR:
 
 ```
-brew install git gh
+brew install gh
 gh auth login
 ```
-
-Homebrew itself, if `brew` is missing: https://brew.sh
 
 </details>
 
