@@ -279,13 +279,16 @@ def register(sid, cwd):
 
 
 def snapshot():
-    """Registered gauntlet runs only, grouped by the checkout each run registered."""
+    """The most recently registered gauntlet run, under the checkout it registered."""
     now = time.time()
     jobs = jobs_by_session()
     trees = {}
+    runs = []
     for rp in glob.glob(f"{RUNS}/*.json"):
-        try: run = json.load(open(rp))
+        try: runs.append((json.load(open(rp)), rp))
         except ValueError: continue
+    runs.sort(key=lambda r: -r[0].get("at", 0))
+    for run, rp in runs[:1]:
         sid, cwd = run.get("session", ""), run.get("cwd", "")
         if not sid or not cwd: continue
         paths = glob.glob(f"{ROOT}/*/{sid}.jsonl")
@@ -520,7 +523,7 @@ function table(tasks){
 
 function render(d){
   const all=d.worktrees.flatMap(w=>w.sessions.map(s=>({...s,wt:w.path,cwd:w.cwd})));
-  if(!all.length){$('#nav').innerHTML='<h1>Worktrees</h1>';$('#main').innerHTML=`<div class=empty><p>No gauntlet runs in the last 24h.</p><p>Start one with <code>/gauntlet:run &lt;spec&gt;</code>. The run registers itself here on its first step.</p></div>`;return;}
+  if(!all.length){$('#nav').innerHTML='<h1>Worktrees</h1>';$('#main').innerHTML=`<div class=empty><p>No gauntlet run in the last 24h.</p><p>Start one with <code>/gauntlet:run &lt;spec&gt;</code>. The run registers itself here on its first step.</p></div>`;return;}
   if(!all.some(s=>s.id===sel)) sel=(all.find(s=>s.running)||all[0]).id;
   $('#nav').innerHTML=nav(d);
   const s=all.find(x=>x.id===sel);
