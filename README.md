@@ -39,7 +39,7 @@ claude --dangerously-skip-permissions --plugin-dir /path/to/gauntlet
 
 Answer the three gates. Fixes you ask for at gate 2 become new builder slices and come back to the same gate.
 
-The first run starts the monitor if nothing is listening on port 7777 and registers the session with its checkout; open http://localhost:7777. It shows the latest registered run, under its checkout, and diffs that checkout, so a run started on main that moves into a worktree shows that worktree. It reads local transcripts under `~/.claude/projects` and sends nothing anywhere. The Changes tab loads its diff viewer from a CDN, so it needs internet access in the browser.
+The first run starts the monitor if nothing is listening on port 7777 and registers the session with its checkout; open http://localhost:7777. It shows the latest registered run of each checkout, grouped by checkout, and diffs that checkout, so a run started on main that moves into a worktree shows that worktree. It reads local transcripts under `~/.claude/projects` and sends nothing anywhere. The Changes tab loads its diff viewer from a CDN, so it needs internet access in the browser.
 
 If the monitor is not up, or you want this session diffed against another checkout, run `/gauntlet:monitor` or `/gauntlet:monitor /path/to/worktree`. It starts the monitor if needed, registers the session, and opens the page.
 
