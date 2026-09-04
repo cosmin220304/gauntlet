@@ -11,14 +11,14 @@ Input: $ARGUMENTS. A spec, a ticket reference, a plan file path, or a descriptio
 
 ## 0. Register the run
 
-Start the monitor if it is not running, then register this session with the checkout the builders will work in:
+Start the monitor if it is not running, then register this session with the checkout the builders will work in and a name for the run. The name is the ticket id plus a few words, or a few words from the spec, under 50 characters:
 
 ```
 lsof -i :7777 >/dev/null 2>&1 || (python3 "${CLAUDE_PLUGIN_ROOT}/skills/run/watch.py" >/dev/null 2>&1 &)
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/run/watch.py" --register "$CLAUDE_CODE_SESSION_ID" "$PWD"
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/run/watch.py" --register "$CLAUDE_CODE_SESSION_ID" "$PWD" "SHOP-142 refund flow"
 ```
 
-The monitor lists registered runs only and shows the uncommitted diff of the registered checkout. If you create or enter a worktree for this run, register again with the worktree path. Tell the user the monitor is at http://localhost:7777.
+The monitor lists registered runs only and shows the uncommitted diff of the registered checkout. If you create or enter a worktree for this run, register again with the worktree path; the name is kept. Tell the user the monitor is at http://localhost:7777.
 
 ## 1. Understand, then ask (gate 1)
 

@@ -273,9 +273,11 @@ def read_text_git(cwd, path):
     return b.decode("utf-8", "replace")
 
 
-def register(sid, cwd):
+def register(sid, cwd, name=""):
     os.makedirs(RUNS, exist_ok=True)
-    json.dump({"session": sid, "cwd": os.path.abspath(cwd), "at": time.time()}, open(f"{RUNS}/{sid}.json", "w"))
+    path = f"{RUNS}/{sid}.json"
+    old = json.load(open(path)) if os.path.exists(path) else {}
+    json.dump({"session": sid, "cwd": os.path.abspath(cwd), "name": name or old.get("name", ""), "at": old.get("at") or time.time()}, open(path, "w"))
 
 
 def snapshot():
@@ -302,7 +304,7 @@ def snapshot():
         if now - mtime > WINDOW: continue
         _, _, title = session_head(path) if path else ("", "", "")
         main = session_tail(path) if path else {"events": [], "running": False, "ended": "", "context": 0, "title": "", "stopped": [], "summary": ""}
-        if not title.startswith("/"): title = main["title"] or title
+        title = run.get("name") or (title if title.startswith("/") else main["title"] or title)
         for t in tasks:
             if t["id"] in main["stopped"]: t["reason"] = t["reason"].replace("interrupted", "stopped by orchestrator")
         branch = git(cwd, "rev-parse", "--abbrev-ref", "HEAD").strip() if os.path.isdir(cwd) else ""
@@ -629,6 +631,6 @@ class H(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     if sys.argv[1:2] == ["--register"]:
-        register(sys.argv[2], sys.argv[3]); sys.exit(0)
+        register(sys.argv[2], sys.argv[3], " ".join(sys.argv[4:])); sys.exit(0)
     print(f"gauntlet watch on http://localhost:{PORT}")
     HTTPServer(("127.0.0.1", PORT), H).serve_forever()
