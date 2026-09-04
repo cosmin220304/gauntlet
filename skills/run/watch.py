@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """Local live view of Claude Code work: worktree -> session -> tasks. Reads ~/.claude transcripts, serves http://localhost:7777."""
-import glob, json, os, re, subprocess, time
+import glob, json, os, re, subprocess, sys, time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 
 HOME = os.path.expanduser("~")
 ROOT = f"{HOME}/.claude/projects"
 JOBS = f"{HOME}/.claude/jobs"
+RUNS = f"{HOME}/.claude/gauntlet/runs"
 CAP = int(os.environ.get("GAUNTLET_CONTEXT_CAP", "130000"))
 PORT = 7777
-WINDOW = 3600
+WINDOW = 24 * 3600
 STATUS_RE = re.compile(r"^(?:Status|Verdict):\s*([A-Z]+)", re.M)
 
 
@@ -272,37 +273,41 @@ def read_text_git(cwd, path):
     return b.decode("utf-8", "replace")
 
 
+def register(sid, cwd):
+    os.makedirs(RUNS, exist_ok=True)
+    json.dump({"session": sid, "cwd": os.path.abspath(cwd), "at": time.time()}, open(f"{RUNS}/{sid}.json", "w"))
+
+
 def snapshot():
+    """Registered gauntlet runs only, grouped by the checkout each run registered."""
     now = time.time()
     jobs = jobs_by_session()
-    sessions = {}
-    for sp in glob.glob(f"{ROOT}/*/*.jsonl"):
-        if now - os.path.getmtime(sp) > WINDOW: continue
-        sid = os.path.basename(sp)[:-6]
-        sessions[sid] = {"id": sid, "path": sp, "tasks": {}}
-    for tp in glob.glob(f"{ROOT}/*/*/subagents/agent-*.jsonl"):
-        if now - os.path.getmtime(tp) > WINDOW: continue
-        sid = tp.split("/")[-3]
-        s = sessions.setdefault(sid, {"id": sid, "path": os.path.dirname(os.path.dirname(tp)) + ".jsonl", "tasks": {}})
-        t = parse_task(tp)
-        if t["id"] not in s["tasks"] or t["mtime"] > s["tasks"][t["id"]]["mtime"]: s["tasks"][t["id"]] = t
     trees = {}
-    for s in sessions.values():
-        exists = os.path.exists(s["path"])
-        cwd, branch, title = session_head(s["path"]) if exists else ("", "", "")
-        if not title and not s["tasks"]: continue
-        main = session_tail(s["path"]) if exists else {"events": [], "running": False, "ended": "", "context": 0, "title": "", "stopped": [], "summary": ""}
+    for rp in glob.glob(f"{RUNS}/*.json"):
+        try: run = json.load(open(rp))
+        except ValueError: continue
+        sid, cwd = run.get("session", ""), run.get("cwd", "")
+        if not sid or not cwd: continue
+        paths = glob.glob(f"{ROOT}/*/{sid}.jsonl")
+        path = paths[0] if paths else ""
+        tasks = {}
+        for tp in glob.glob(f"{ROOT}/*/{sid}/subagents/agent-*.jsonl"):
+            t = parse_task(tp)
+            if t["id"] not in tasks or t["mtime"] > tasks[t["id"]]["mtime"]: tasks[t["id"]] = t
+        tasks = sorted(tasks.values(), key=lambda t: t["started"])
+        mtime = max([os.path.getmtime(rp)] + ([os.path.getmtime(path)] if path else []) + [t["mtime"] for t in tasks])
+        if now - mtime > WINDOW: continue
+        _, _, title = session_head(path) if path else ("", "", "")
+        main = session_tail(path) if path else {"events": [], "running": False, "ended": "", "context": 0, "title": "", "stopped": [], "summary": ""}
         if not title.startswith("/"): title = main["title"] or title
-        tasks = sorted(s["tasks"].values(), key=lambda t: t["started"])
         for t in tasks:
             if t["id"] in main["stopped"]: t["reason"] = t["reason"].replace("interrupted", "stopped by orchestrator")
-        job = jobs.get(s["id"])
-        mtime = max(([os.path.getmtime(s["path"])] if exists else [0]) + [t["mtime"] for t in tasks])
-        sess = {"id": s["id"], "title": title or s["id"][:8], "branch": branch, "job": job, "main": main,
+        branch = git(cwd, "rev-parse", "--abbrev-ref", "HEAD").strip() if os.path.isdir(cwd) else ""
+        sess = {"id": sid, "title": title or sid[:8], "branch": branch, "job": jobs.get(sid), "main": main,
                 "tasks": tasks, "running": sum(t["running"] for t in tasks) + (1 if main["running"] else 0),
                 "started": tasks[0]["started"] if tasks else main["ended"], "mtime": mtime}
-        repo, wt = worktree_label(cwd) if cwd else ("unknown", "")
-        w = trees.setdefault(cwd or "?", {"path": short(cwd) or "unknown", "cwd": cwd, "repo": repo, "worktree": wt, "sessions": [], "mtime": 0})
+        repo, wt = worktree_label(cwd)
+        w = trees.setdefault(cwd, {"path": short(cwd), "cwd": cwd, "repo": repo, "worktree": wt, "sessions": [], "mtime": 0})
         w["sessions"].append(sess); w["mtime"] = max(w["mtime"], sess["mtime"])
     for w in trees.values(): w["sessions"].sort(key=lambda s: -s["mtime"])
     return {"cap": CAP, "now": now, "worktrees": sorted(trees.values(), key=lambda w: -w["mtime"])}
@@ -515,7 +520,7 @@ function table(tasks){
 
 function render(d){
   const all=d.worktrees.flatMap(w=>w.sessions.map(s=>({...s,wt:w.path,cwd:w.cwd})));
-  if(!all.length){$('#nav').innerHTML='<h1>Worktrees</h1>';$('#main').innerHTML=`<div class=empty><p>Nothing active in the last hour.</p><p>Start a run from Fable with <code>/gauntlet:run &lt;spec&gt;</code>. Sessions appear on the left the moment a task spawns.</p></div>`;return;}
+  if(!all.length){$('#nav').innerHTML='<h1>Worktrees</h1>';$('#main').innerHTML=`<div class=empty><p>No gauntlet runs in the last 24h.</p><p>Start one with <code>/gauntlet:run &lt;spec&gt;</code>. The run registers itself here on its first step.</p></div>`;return;}
   if(!all.some(s=>s.id===sel)) sel=(all.find(s=>s.running)||all[0]).id;
   $('#nav').innerHTML=nav(d);
   const s=all.find(x=>x.id===sel);
@@ -620,5 +625,7 @@ class H(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--register"]:
+        register(sys.argv[2], sys.argv[3]); sys.exit(0)
     print(f"gauntlet watch on http://localhost:{PORT}")
     HTTPServer(("127.0.0.1", PORT), H).serve_forever()

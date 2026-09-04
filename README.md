@@ -2,7 +2,7 @@
 
 Fable plans and reviews. Opus 4.6 builds. You decide at three gates.
 
-`/gauntlet:run <spec or ticket>` turns Fable into the product owner and tech lead for one feature in the current worktree. It writes a brief, splits the work only where a second engineer could take a part without stepping on the first, and spawns one `gauntlet-builder` per slice. Builders run on `claude-opus-4-6`, decide their own implementation, write their own tests, and never run them. A hook stops any builder that crosses 130k tokens of context and makes it hand off. Fable reviews and trims every diff, runs the tests itself, and ships through `/gauntlet:ship-it`.
+`/gauntlet:run <spec or ticket>` turns Fable into the product owner for one feature in the current worktree. It writes a brief that says what and why, splits the work only where a second engineer could take a part without stepping on the first, and spawns one `gauntlet-builder` per slice. Builders run on `claude-opus-4-6`. They explore the code, choose their own files, names and steps, write their own tests, and never run them. Fable never tells a builder how to build. A hook stops any builder that crosses 130k tokens of context and makes it hand off. Fable checks every diff for business sense, runs the tests itself, and ships through `/gauntlet:ship-it`.
 
 The run stops to ask you three times:
 
@@ -39,7 +39,7 @@ claude --dangerously-skip-permissions --plugin-dir /path/to/gauntlet
 
 Answer the three gates. Fixes you ask for at gate 2 become new builder slices and come back to the same gate.
 
-The first run starts the monitor if nothing is listening on port 7777; open http://localhost:7777. It lists every Claude Code session on your machine, not only gauntlet runs, because it reads the local transcripts under `~/.claude/projects`. It sends nothing anywhere. The Changes tab loads its diff viewer from a CDN, so it needs internet access in the browser.
+The first run starts the monitor if nothing is listening on port 7777 and registers the session with its checkout; open http://localhost:7777. It shows registered gauntlet runs from the last 24 hours, grouped by checkout, and diffs the checkout the run registered, so a run started on main that moves into a worktree shows that worktree. It reads local transcripts under `~/.claude/projects` and sends nothing anywhere. The Changes tab loads its diff viewer from a CDN, so it needs internet access in the browser.
 
 ## Knobs
 
