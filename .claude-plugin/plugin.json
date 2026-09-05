@@ -1,7 +1,7 @@
 {
   "name": "gauntlet",
   "displayName": "Gauntlet",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "Fable as product owner, Opus 4.6 builders under a hard context cap, a live monitor with a git diff view, and three user gates: before dispatch, before tests, before shipping.",
   "author": {
     "name": "Cosmin Aftanase"

@@ -386,9 +386,10 @@ nav h1{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:upperc
 
 /* main */
 main{overflow-y:auto;padding:22px 32px 64px}
-.top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+.top{display:flex;align-items:baseline;gap:12px;margin-bottom:0;min-width:0}
 .top h2{font-size:17px;font-weight:600;letter-spacing:-.01em;margin:0;max-width:70ch;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.top .meta{color:var(--ink-3);font-size:12.5px;display:flex;gap:12px;align-items:baseline}
+.top .meta{color:var(--ink-3);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.top .meta .br{font-family:var(--mono);font-size:11.5px}
 .job{margin:10px 0 26px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel);display:flex;gap:14px;align-items:baseline;font-size:13px}
 .job .st{color:var(--warn);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
 .job .d{color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -399,7 +400,7 @@ h3 span{font-weight:500;letter-spacing:0;text-transform:none;margin-left:8px}
 .empty code{font-family:var(--mono);font-size:12.5px;background:var(--raise);border:1px solid var(--line-2);padding:1px 6px;border-radius:4px}
 
 /* views */
-.views{display:flex;gap:18px;margin:14px 0 4px;border-bottom:1px solid var(--line)}
+.views{display:flex;gap:18px;margin:8px 0 4px;border-bottom:1px solid var(--line)}
 .views button{padding:8px 0 9px;color:var(--ink-3);border-bottom:1.5px solid transparent;margin-bottom:-1px;font-weight:500}
 .views button:hover{color:var(--ink-2)}
 .views button[aria-selected=true]{color:var(--ink);border-color:var(--ink)}
@@ -539,7 +540,7 @@ function render(d){
   $('#nav').innerHTML=nav(d);
   const s=all.find(x=>x.id===sel);
   const running=s.tasks.filter(t=>t.running), done=s.tasks.filter(t=>!t.running).reverse();
-  let h=`<div class=top><h2>${esc(s.title)}</h2><span class=meta><span>${esc(s.wt)}</span>${s.branch&&s.branch!=='HEAD'?`<span>${esc(s.branch)}</span>`:''}<span>${hhmm(s.started)}</span></span></div>`;
+  let h=`<div class=top><h2>${esc(s.title)}</h2><span class=meta title="${esc(s.wt)}">${s.branch&&s.branch!=='HEAD'?`<span class=br>${esc(s.branch)}</span> · `:''}${hhmm(s.started)}</span></div>`;
   if(s.job) h+=`<div class=job><span class=st>${esc(s.job.state)}</span><span class=d>${esc(s.job.detail||'')}</span><span class=tk>bg ${esc(s.job.id)} · ${fmtK(s.job.tokens)} tok</span></div>`;
   const nfiles=diffCache&&diffCwd===s.cwd&&!diffCache.error?diffCache.files.length:null;
   h+=`<div class=views role=tablist><button role=tab data-view=tasks aria-selected="${view==='tasks'}">Tasks<span>${s.tasks.length}</span></button><button role=tab data-view=changes aria-selected="${view==='changes'}">Changes${nfiles!==null?`<span>${nfiles}</span>`:''}</button></div>`;
