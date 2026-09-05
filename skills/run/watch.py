@@ -113,6 +113,7 @@ def parse_task(path):
     running = last_kind == "tool_use" or (age < 30 and not stopped)
     m = STATUS_RE.search(last_text)
     status = m.group(1) if m else "RUNNING" if running else "STOPPED" if stopped else "NOREPORT" if cap else "ENDED"
+    if status == "SPLIT": status = "HANDOFF"
     reason = "" if running else "interrupted" if stopped else "hit the context cap, no handoff written" if cap and not m else ""
     if compactions: reason = (f"{reason} · " if reason else "") + f"compacted {compactions}x"
     return {
