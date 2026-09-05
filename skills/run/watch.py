@@ -609,11 +609,11 @@ function paintDiff(){
   diffRoot.render(window.GDV.React.createElement(FileCard,{key:diffSel,f:r.files[i],i,n:r.files.length,mode:diffMode,full:diffFull}));
 }
 document.addEventListener('click',e=>{
-  const v=e.target.closest('[data-view]'); if(v){view=v.dataset.view;if(view!=='changes')unmountDiff();render(data);return;}
-  const md=e.target.closest('[data-mode]'); if(md){diffMode=md.dataset.mode;paintDiff();return;}
-  const fb=e.target.closest('[data-file]'); if(fb){diffSel=fb.dataset.file;paintDiff();return;}
+  const v=e.target.closest('.views [data-view]'); if(v){view=v.dataset.view;if(view!=='changes')unmountDiff();render(data);return;}
+  const md=e.target.closest('.chg-head [data-mode]'); if(md){diffMode=md.dataset.mode;paintDiff();return;}
+  const fb=e.target.closest('#flist [data-file]'); if(fb){diffSel=fb.dataset.file;paintDiff();return;}
   const s=e.target.closest('.sess'); if(s){sel=s.dataset.id;history.replaceState(null,'','#'+sel);unmountDiff();render(data);return;}
-  const tb=e.target.closest('[data-tab]'); if(tb){tab[tb.dataset.id]=tb.dataset.tab;render(data);return;}
+  const tb=e.target.closest('.tabs [data-tab]'); if(tb){tab[tb.dataset.id]=tb.dataset.tab;render(data);return;}
   const r=e.target.closest('tr.row'); if(r){open.has(r.dataset.id)?open.delete(r.dataset.id):open.add(r.dataset.id);render(data);}
 });
 document.addEventListener('toggle',e=>{const w=e.target.closest('.wt');if(!w)return;w.open?openWt.add(w.dataset.path):openWt.delete(w.dataset.path);saveWt();},true);
