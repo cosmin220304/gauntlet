@@ -428,11 +428,11 @@ h3 span{font-weight:500;letter-spacing:0;text-transform:none;margin-left:8px}
 .f .pg button:hover{background:var(--line)}.f .pg button:disabled{color:var(--line-2);cursor:default;background:none}
 .f .pg span{padding:0 4px}
 .fs.A{color:var(--run);border-color:var(--ok-line)}.fs.D{color:var(--bad);border-color:var(--bad-line)}.fs.R{color:var(--warn);border-color:var(--warn-line)}
-.f .body{overflow:auto;flex:1;min-height:0}
+.f .body{overflow:auto;flex:0 1 auto;min-height:0}
 main.changes{display:flex;flex-direction:column;overflow:hidden;padding-bottom:20px}
 main.changes .top,main.changes .views,main.changes .chg-head,main.changes .files{flex:none}
 main.changes #diff{display:flex;flex-direction:column;flex:1;min-height:0}
-main.changes #dv,main.changes .f{display:flex;flex-direction:column;flex:1;min-height:0}
+main.changes #dv,main.changes .f{display:flex;flex-direction:column;flex:0 1 auto;min-height:0}
 .f .bin{padding:12px;color:var(--ink-3);font-size:12.5px}
 .chg-empty{color:var(--ink-2);padding:24px 0}
 
