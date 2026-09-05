@@ -152,20 +152,26 @@ def session_head(path):
 STOP_CACHE = {}
 
 
-def stopped_tasks(path):
-    """Ids of subagents this session stopped with TaskStop, scanned over the whole transcript."""
+TURN_RE = re.compile(r"<task-id>([0-9a-f]+)</task-id>.{0,400}?stopped at its (\d+)-turn limit", re.S)
+
+
+def task_notes(path):
+    """What the parent session did to or heard about each subagent: {'stopped': ids, 'turns': {id: limit}}."""
     key = (path, os.path.getsize(path))
     if key in STOP_CACHE: return STOP_CACHE[key]
-    ids = []
+    notes = {"stopped": [], "turns": {}}
     with open(path, "rb") as f:
         for line in f:
-            if b'"name":"TaskStop"' not in line: continue
-            try: d = json.loads(line)
-            except ValueError: continue
-            for b in d.get("message", {}).get("content", []) if isinstance(d.get("message", {}).get("content"), list) else []:
-                if b.get("type") == "tool_use" and b.get("name") == "TaskStop": ids.append(b.get("input", {}).get("task_id", ""))
-    STOP_CACHE.clear(); STOP_CACHE[key] = ids
-    return ids
+            if b'"name":"TaskStop"' in line:
+                try: d = json.loads(line)
+                except ValueError: continue
+                for b in d.get("message", {}).get("content", []) if isinstance(d.get("message", {}).get("content"), list) else []:
+                    if b.get("type") == "tool_use" and b.get("name") == "TaskStop": notes["stopped"].append(b.get("input", {}).get("task_id", ""))
+            elif b"-turn limit" in line:
+                m = TURN_RE.search(line.decode("utf-8", "replace").replace("\\n", "\n"))
+                if m: notes["turns"][m.group(1)] = int(m.group(2))
+    STOP_CACHE.clear(); STOP_CACHE[key] = notes
+    return notes
 
 
 def session_tail(path, limit=256 * 1024):
@@ -200,7 +206,7 @@ def session_tail(path, limit=256 * 1024):
     ctx = usage.get("input_tokens", 0) + usage.get("cache_read_input_tokens", 0) + usage.get("cache_creation_input_tokens", 0)
     age = time.time() - os.path.getmtime(path)
     return {"events": events[-20:], "running": last_kind == "tool_use" or age < 30, "ended": last, "context": ctx,
-            "title": title, "stopped": stopped_tasks(path), "summary": summary}
+            "title": title, "notes": task_notes(path), "summary": summary}
 
 
 def jobs_by_session():
@@ -303,10 +309,12 @@ def snapshot():
         mtime = max([os.path.getmtime(rp)] + ([os.path.getmtime(path)] if path else []) + [t["mtime"] for t in tasks])
         if now - mtime > WINDOW: continue
         _, _, title = session_head(path) if path else ("", "", "")
-        main = session_tail(path) if path else {"events": [], "running": False, "ended": "", "context": 0, "title": "", "stopped": [], "summary": ""}
+        main = session_tail(path) if path else {"events": [], "running": False, "ended": "", "context": 0, "title": "", "notes": {"stopped": [], "turns": {}}, "summary": ""}
         title = run.get("name") or (title if title.startswith("/") else main["title"] or title)
         for t in tasks:
-            if t["id"] in main["stopped"]: t["reason"] = t["reason"].replace("interrupted", "stopped by orchestrator")
+            if t["id"] in main["notes"]["stopped"]: t["reason"] = t["reason"].replace("interrupted", "stopped by orchestrator")
+            if t["id"] in main["notes"]["turns"] and t["status"] == "ENDED":
+                t["status"] = "CUT"; t["reason"] = f"hit the {main['notes']['turns'][t['id']]}-turn limit, no report"
         branch = git(cwd, "rev-parse", "--abbrev-ref", "HEAD").strip() if os.path.isdir(cwd) else ""
         sess = {"id": sid, "title": title or sid[:8], "branch": branch, "job": jobs.get(sid), "main": main,
                 "tasks": tasks, "running": sum(t["running"] for t in tasks) + (1 if main["running"] else 0),
@@ -457,7 +465,7 @@ td.name .why{display:block;margin:2px 0 0;color:var(--warn);font-size:12px}
 .pill{display:inline-block;min-width:58px;text-align:center;font-size:11px;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:4px;background:var(--raise);border:1px solid var(--line-2);color:var(--ink-2)}
 .pill.DONE,.pill.PASS{color:var(--run);border-color:var(--ok-line);background:var(--ok-bg)}
 .pill.SPLIT{color:var(--warn);border-color:var(--warn-line);background:var(--warn-bg)}
-.pill.CAP{color:var(--warn);border-color:var(--warn-line);background:var(--warn-bg)}
+.pill.CAP,.pill.CUT{color:var(--warn);border-color:var(--warn-line);background:var(--warn-bg)}
 .pill.FAILED,.pill.FAIL,.pill.BLOCKED,.pill.STOPPED{color:var(--bad);border-color:var(--bad-line);background:var(--bad-bg)}
 tr.detail td{background:var(--raise);padding:12px 16px 14px}
 .tabs{display:flex;gap:14px;margin:0 0 10px;font-size:12.5px}
