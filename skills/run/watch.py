@@ -351,7 +351,7 @@ window.dispatchEvent(new Event("gdv-ready"));
 html{color-scheme:dark;background:var(--bg)}
 :root{--nav:300px}
 body{margin:0;background:var(--bg);color:var(--ink);font:13.5px/1.45 var(--sans);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;height:100vh;display:grid;grid-template-columns:var(--nav) minmax(0,1fr);overflow:hidden}
-#grip{position:fixed;top:0;bottom:0;left:calc(var(--nav) - 3px);width:6px;cursor:col-resize;z-index:3}
+#grip{position:fixed;top:0;bottom:0;left:max(0px,calc(var(--nav) - 3px));width:6px;cursor:col-resize;z-index:3}
 #grip:hover,#grip.on{background:linear-gradient(to right,transparent 2px,var(--line-2) 2px,var(--line-2) 4px,transparent 4px)}
 body.dragging{cursor:col-resize;user-select:none}
 body.dragging main,body.dragging nav{pointer-events:none}
@@ -361,7 +361,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 b{font-weight:600}
 
 /* tree */
-nav{border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;padding:14px 0 24px}
+nav{border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;overflow-x:hidden;padding:14px 0 24px;min-width:0}
 nav h1{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px;padding:0 16px}
 .wt{border-top:1px solid var(--line)}
 .wt summary{list-style:none;cursor:pointer;padding:10px 16px 10px 12px;display:flex;align-items:baseline;gap:8px;color:var(--ink)}
@@ -610,13 +610,14 @@ document.addEventListener('click',e=>{
 document.addEventListener('toggle',e=>{const w=e.target.closest('.wt');if(!w)return;w.open?openWt.add(w.dataset.path):openWt.delete(w.dataset.path);saveWt();},true);
 (()=>{
   const root=document.documentElement, grip=$('#grip');
-  try{const w=+localStorage.getItem('nav');if(w)root.style.setProperty('--nav',w+'px');}catch(e){}
+  try{const w=localStorage.getItem('nav');if(w!==null)root.style.setProperty('--nav',+w+'px');}catch(e){}
   grip.addEventListener('pointerdown',e=>{
     grip.setPointerCapture(e.pointerId);grip.classList.add('on');document.body.classList.add('dragging');
-    const move=ev=>{const w=Math.min(600,Math.max(200,ev.clientX));root.style.setProperty('--nav',w+'px');};
+    const move=ev=>{const w=ev.clientX<120?0:Math.min(600,Math.max(200,ev.clientX));root.style.setProperty('--nav',w+'px');};
     const up=()=>{grip.classList.remove('on');document.body.classList.remove('dragging');grip.removeEventListener('pointermove',move);grip.removeEventListener('pointerup',up);try{localStorage.setItem('nav',parseInt(getComputedStyle(root).getPropertyValue('--nav')))}catch(e){}};
     grip.addEventListener('pointermove',move);grip.addEventListener('pointerup',up);
   });
+  grip.addEventListener('dblclick',()=>{const w=parseInt(getComputedStyle(root).getPropertyValue('--nav'))?0:300;root.style.setProperty('--nav',w+'px');try{localStorage.setItem('nav',w)}catch(e){}});
 })();
 document.addEventListener('keydown',e=>{if(view==='changes'&&diffCache&&!e.target.closest('input,textarea')){if(e.key==='[')stepFile(-1);if(e.key===']')stepFile(1);}const r=e.target.closest('tr.row');if(r&&(e.key==='Enter'||e.key===' ')){e.preventDefault();r.click();}});
 async function tick(){try{data=await (await fetch('/api')).json();render(data);}catch(err){$('#main').innerHTML='<div class=empty>monitor offline</div>';}}
