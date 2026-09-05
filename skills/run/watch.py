@@ -354,6 +354,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font:13.5px/1.45 var(--sans)
 #grip{position:fixed;top:0;bottom:0;left:max(0px,calc(var(--nav) - 3px));width:6px;cursor:col-resize;z-index:3}
 #grip:hover,#grip.on{background:linear-gradient(to right,transparent 2px,var(--line-2) 2px,var(--line-2) 4px,transparent 4px)}
 body.dragging{cursor:col-resize;user-select:none}
+#navopen{position:fixed;top:10px;left:10px;z-index:4;width:28px;height:28px;border-radius:6px;border:1px solid var(--line-2);background:var(--panel);color:var(--ink-2);font-size:14px;line-height:26px;text-align:center;display:none;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+#navopen:hover{color:var(--ink);background:var(--raise)}
+body.navclosed #navopen{display:block}
+body.navclosed main{padding-left:48px}
 body.dragging main,body.dragging nav{pointer-events:none}
 ::selection{background:var(--run-dim);color:var(--ink)}
 :focus-visible{outline:1.5px solid var(--run);outline-offset:2px;border-radius:4px}
@@ -489,6 +493,7 @@ tr.detail td{background:var(--raise);padding:12px 16px 14px}
 </style>
 <nav id=nav></nav>
 <div id=grip></div>
+<button id=navopen title="show worktrees" aria-label="show worktrees">»</button>
 <main id=main></main>
 <script>
 const $=s=>document.querySelector(s);
@@ -619,14 +624,16 @@ document.addEventListener('click',e=>{
 document.addEventListener('toggle',e=>{const w=e.target.closest('.wt');if(!w)return;w.open?openWt.add(w.dataset.path):openWt.delete(w.dataset.path);saveWt();},true);
 (()=>{
   const root=document.documentElement, grip=$('#grip');
-  try{const w=localStorage.getItem('nav');if(w!==null)root.style.setProperty('--nav',+w+'px');}catch(e){}
+  const setNav=w=>{root.style.setProperty('--nav',w+'px');document.body.classList.toggle('navclosed',w===0);};
+  try{const w=localStorage.getItem('nav');if(w!==null)setNav(+w);}catch(e){}
+  $('#navopen').addEventListener('click',()=>{setNav(300);try{localStorage.setItem('nav',300)}catch(e){}});
   grip.addEventListener('pointerdown',e=>{
     grip.setPointerCapture(e.pointerId);grip.classList.add('on');document.body.classList.add('dragging');
-    const move=ev=>{const w=ev.clientX<120?0:Math.min(600,Math.max(200,ev.clientX));root.style.setProperty('--nav',w+'px');};
+    const move=ev=>{setNav(ev.clientX<120?0:Math.min(600,Math.max(200,ev.clientX)));};
     const up=()=>{grip.classList.remove('on');document.body.classList.remove('dragging');grip.removeEventListener('pointermove',move);grip.removeEventListener('pointerup',up);try{localStorage.setItem('nav',parseInt(getComputedStyle(root).getPropertyValue('--nav')))}catch(e){}};
     grip.addEventListener('pointermove',move);grip.addEventListener('pointerup',up);
   });
-  grip.addEventListener('dblclick',()=>{const w=parseInt(getComputedStyle(root).getPropertyValue('--nav'))?0:300;root.style.setProperty('--nav',w+'px');try{localStorage.setItem('nav',w)}catch(e){}});
+  grip.addEventListener('dblclick',()=>{const w=parseInt(getComputedStyle(root).getPropertyValue('--nav'))?0:300;setNav(w);try{localStorage.setItem('nav',w)}catch(e){}});
 })();
 document.addEventListener('keydown',e=>{if(view==='changes'&&diffCache&&!e.target.closest('input,textarea')){if(e.key==='[')stepFile(-1);if(e.key===']')stepFile(1);if(e.key==='Escape'&&diffFull){diffFull=false;paintDiff();}if(e.key==='f'&&!e.metaKey&&!e.ctrlKey){diffFull=!diffFull;paintDiff();}}const r=e.target.closest('tr.row');if(r&&(e.key==='Enter'||e.key===' ')){e.preventDefault();r.click();}});
 async function tick(){try{data=await (await fetch('/api')).json();render(data);}catch(err){$('#main').innerHTML='<div class=empty>monitor offline</div>';}}
