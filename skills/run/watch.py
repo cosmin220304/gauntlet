@@ -428,7 +428,11 @@ h3 span{font-weight:500;letter-spacing:0;text-transform:none;margin-left:8px}
 .f .pg button:hover{background:var(--line)}.f .pg button:disabled{color:var(--line-2);cursor:default;background:none}
 .f .pg span{padding:0 4px}
 .fs.A{color:var(--run);border-color:var(--ok-line)}.fs.D{color:var(--bad);border-color:var(--bad-line)}.fs.R{color:var(--warn);border-color:var(--warn-line)}
-.f .body{max-height:calc(80vh - 300px);overflow:auto}
+.f .body{overflow:auto;flex:1;min-height:0}
+main.changes{display:flex;flex-direction:column;overflow:hidden;padding-bottom:20px}
+main.changes .top,main.changes .views,main.changes .chg-head,main.changes .files{flex:none}
+main.changes #diff{display:flex;flex-direction:column;flex:1;min-height:0}
+main.changes #dv,main.changes .f{display:flex;flex-direction:column;flex:1;min-height:0}
 .f .bin{padding:12px;color:var(--ink-3);font-size:12.5px}
 .chg-empty{color:var(--ink-2);padding:24px 0}
 
@@ -544,6 +548,7 @@ function render(d){
   if(s.job) h+=`<div class=job><span class=st>${esc(s.job.state)}</span><span class=d>${esc(s.job.detail||'')}</span><span class=tk>bg ${esc(s.job.id)} · ${fmtK(s.job.tokens)} tok</span></div>`;
   const nfiles=diffCache&&diffCwd===s.cwd&&!diffCache.error?diffCache.files.length:null;
   h+=`<div class=views role=tablist><button role=tab data-view=tasks aria-selected="${view==='tasks'}">Tasks<span>${s.tasks.length}</span></button><button role=tab data-view=changes aria-selected="${view==='changes'}">Changes${nfiles!==null?`<span>${nfiles}</span>`:''}</button></div>`;
+  $('#main').classList.toggle('changes',view==='changes');
   if(view==='changes'){
     if(diffCwd!==s.cwd){diffCwd=s.cwd;diffCache=null;diffKey='';unmountDiff();loadDiff();}
     if(diffBox&&document.contains(diffBox)){paintDiff();return;}
