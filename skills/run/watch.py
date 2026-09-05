@@ -433,6 +433,9 @@ main.changes{display:flex;flex-direction:column;overflow:hidden;padding-bottom:2
 main.changes .top,main.changes .views,main.changes .chg-head,main.changes .files{flex:none}
 main.changes #diff{display:flex;flex-direction:column;flex:1;min-height:0}
 main.changes #dv,main.changes .f{display:flex;flex-direction:column;flex:0 1 auto;min-height:0}
+.f.full{position:fixed;inset:0;z-index:10;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--bg)}
+.f.full .body{flex:1}
+.f .pg .fs-btn{font-size:13px;margin-left:6px}
 .f .bin{padding:12px;color:var(--ink-3);font-size:12.5px}
 .chg-empty{color:var(--ink-2);padding:24px 0}
 
@@ -491,7 +494,7 @@ tr.detail td{background:var(--raise);padding:12px 16px 14px}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const open=new Set(), tab={}; let sel=location.hash.slice(1)||null, data=null;
-let view=new URLSearchParams(location.search).get('view')||'tasks', diffMode='split', diffKey='', diffCache=null, diffCwd='', diffSel=new URLSearchParams(location.search).get('file')||'';
+let view=new URLSearchParams(location.search).get('view')||'tasks', diffMode='split', diffKey='', diffCache=null, diffCwd='', diffSel=new URLSearchParams(location.search).get('file')||'', diffFull=false;
 const fmtK=n=>n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M':n>=1000?(n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'k':String(n);
 const hhmm=iso=>iso?new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
 const dur=(a,b)=>{const s=Math.max(0,Math.round((new Date(b)-new Date(a))/1000));return s<60?s+'s':s<3600?Math.floor(s/60)+'m':Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m'};
@@ -574,16 +577,16 @@ async function loadDiff(){
 let diffRoot=null, diffBox=null;
 function unmountDiff(){if(diffRoot){diffRoot.unmount();diffRoot=null;diffBox=null;}}
 const splitPath=p=>{const i=p.lastIndexOf('/')+1;return [p.slice(0,i),p.slice(i)]};
-function FileCard({f,i,n,mode}){
+function FileCard({f,i,n,mode,full}){
   const {React,DiffView,DiffModeEnum}=window.GDV, h=React.createElement;
   const data=React.useMemo(()=>({oldFile:{fileName:f.oldPath,fileLang:f.lang,content:f.old??undefined},newFile:{fileName:f.path,fileLang:f.lang,content:f.new??undefined},hunks:[f.patch]}),[f.patch]);
   const [dir,name]=splitPath(f.path);
-  return h('div',{className:'f'},
+  return h('div',{className:'f'+(full?' full':'')},
     h('div',{className:'fh'},
       h('span',{className:'fs '+f.status},f.status),
       h('span',{className:'fp',title:f.path},h('span',{className:'dir'},dir),name),
       h('span',{className:'fn'},h('b',{className:'a'},'+'+(f.add||0)),' ',h('b',{className:'d'},'−'+(f.del||0))),
-      h('span',{className:'pg'},h('button',{disabled:i===0,onClick:()=>stepFile(-1),'aria-label':'previous file'},'‹'),h('span',null,(i+1)+' / '+n),h('button',{disabled:i===n-1,onClick:()=>stepFile(1),'aria-label':'next file'},'›'))),
+      h('span',{className:'pg'},h('button',{disabled:i===0,onClick:()=>stepFile(-1),'aria-label':'previous file'},'‹'),h('span',null,(i+1)+' / '+n),h('button',{disabled:i===n-1,onClick:()=>stepFile(1),'aria-label':'next file'},'›'),h('button',{className:'fs-btn',onClick:()=>{diffFull=!diffFull;paintDiff();},'aria-label':full?'exit full screen':'full screen',title:full?'exit full screen (Esc)':'full screen'},full?'⤡':'⛶'))),
     f.patch?h('div',{className:'body'},h(DiffView,{data,diffViewMode:mode==='split'?DiffModeEnum.Split:DiffModeEnum.Unified,diffViewTheme:'dark',diffViewHighlight:true,diffViewFontSize:12,diffViewWrap:false}))
            :h('div',{className:'bin'},'diff omitted, patch too large'));
 }
@@ -603,7 +606,7 @@ function paintDiff(){
   if(!window.GDV){dv.innerHTML='<div class=chg-empty>loading diff viewer…</div>';window.addEventListener('gdv-ready',paintDiff,{once:true});return;}
   if(diffBox!==dv){unmountDiff();dv.innerHTML='';diffRoot=window.GDV.createRoot(dv);diffBox=dv;}
   const i=r.files.findIndex(f=>f.path===diffSel);
-  diffRoot.render(window.GDV.React.createElement(FileCard,{key:diffSel,f:r.files[i],i,n:r.files.length,mode:diffMode}));
+  diffRoot.render(window.GDV.React.createElement(FileCard,{key:diffSel,f:r.files[i],i,n:r.files.length,mode:diffMode,full:diffFull}));
 }
 document.addEventListener('click',e=>{
   const v=e.target.closest('[data-view]'); if(v){view=v.dataset.view;if(view!=='changes')unmountDiff();render(data);return;}
@@ -625,7 +628,7 @@ document.addEventListener('toggle',e=>{const w=e.target.closest('.wt');if(!w)ret
   });
   grip.addEventListener('dblclick',()=>{const w=parseInt(getComputedStyle(root).getPropertyValue('--nav'))?0:300;root.style.setProperty('--nav',w+'px');try{localStorage.setItem('nav',w)}catch(e){}});
 })();
-document.addEventListener('keydown',e=>{if(view==='changes'&&diffCache&&!e.target.closest('input,textarea')){if(e.key==='[')stepFile(-1);if(e.key===']')stepFile(1);}const r=e.target.closest('tr.row');if(r&&(e.key==='Enter'||e.key===' ')){e.preventDefault();r.click();}});
+document.addEventListener('keydown',e=>{if(view==='changes'&&diffCache&&!e.target.closest('input,textarea')){if(e.key==='[')stepFile(-1);if(e.key===']')stepFile(1);if(e.key==='Escape'&&diffFull){diffFull=false;paintDiff();}if(e.key==='f'&&!e.metaKey&&!e.ctrlKey){diffFull=!diffFull;paintDiff();}}const r=e.target.closest('tr.row');if(r&&(e.key==='Enter'||e.key===' ')){e.preventDefault();r.click();}});
 async function tick(){try{data=await (await fetch('/api')).json();render(data);}catch(err){$('#main').innerHTML='<div class=empty>monitor offline</div>';}}
 tick();setInterval(tick,2000);setInterval(()=>{if(view==='changes')loadDiff();},4000);
 </script>"""
