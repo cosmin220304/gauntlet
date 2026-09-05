@@ -52,7 +52,7 @@ Spawn one `gauntlet-builder` per slice with the brief, its slice, and the verifi
 On each report:
 
 - `DONE`: read the full diff for one thing: does the behaviour match the brief and the acceptance, and does it make business sense. Do not restyle it, do not rewrite it, do not edit it. If the logic is wrong or something is missing, send it back as a fix slice to a fresh builder with the reason. Run the formatter and compile. Do not run tests yet; that waits for gate 2. Record the slice in the brief with the token count from the completion notice, and move on.
-- `SPLIT`: record the handoff in the brief, spawn a fresh builder for the remainder with the handoff as its starting point.
+- `HANDOFF`: record the handoff in the brief, spawn a fresh builder for the remainder with the handoff as its starting point.
 - `BLOCKED`: decide. Widen the boundary, move the file to the other slice, or make the change yourself if it is a one-line seam fix in a shared file. Record the decision, respawn.
 - `FAILED`: read the failure output. If it is something the builder should have handled, respawn with the failure and a pointer. If it reveals a wrong decision in the brief, fix the brief first. Three failures on one slice: stop it, record the open state, continue with the others.
 
@@ -70,7 +70,7 @@ With verification green, report the real numbers and ask: ship it? On yes, invok
 
 - Questions live at the three gates only, and only when the answer changes what gets built. While a builder is running, never ask; decide, record it in the brief, keep going.
 - You decide what and why. The builder decides how. If you catch yourself writing file names, class names or steps for a builder, delete them.
-- Never let a builder run tests. Test runs, sandbox runs, and anything that talks to a real external system are yours. Builders format and compile only. If a builder needs a test result to proceed, that is a `SPLIT` point: it reports, you run, you respawn with the outcome.
+- Never let a builder run tests. Test runs, sandbox runs, and anything that talks to a real external system are yours. Builders format and compile only. If a builder needs a test result to proceed, that is a `HANDOFF` point: it reports, you run, you respawn with the outcome.
 - Review before verify. A slice is not done when the builder says so; it is done when you have read the diff, trimmed it, and watched the tests pass.
 - Keep the brief current after every report. It is the only state.
 - Builders run on `claude-opus-4-6` with a 130k context cap, enforced by the plugin's PreToolUse hook `hooks/context-cap.py`. If a builder hits the cap on a slice you thought was small, the slice was not small. Cut finer next time.

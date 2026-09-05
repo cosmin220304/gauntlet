@@ -28,7 +28,7 @@ if context < CAP:
 
 print(
     f"CONTEXT CAP REACHED: your context is {context} tokens, cap is {CAP}. "
-    "Make no more tool calls. Reply now with your report, Status: SPLIT, "
+    "Make no more tool calls. Reply now with your report, Status: HANDOFF, "
     "and a precise handoff of what is done and what remains.",
     file=sys.stderr,
 )

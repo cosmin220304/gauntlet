@@ -112,8 +112,8 @@ def parse_task(path):
     age = time.time() - os.path.getmtime(path)
     running = last_kind == "tool_use" or (age < 30 and not stopped)
     m = STATUS_RE.search(last_text)
-    status = m.group(1) if m else "RUNNING" if running else "STOPPED" if stopped else "CAP" if cap else "ENDED"
-    reason = "" if running else "interrupted" if stopped else "context cap hit, no SPLIT report" if cap and not m else ""
+    status = m.group(1) if m else "RUNNING" if running else "STOPPED" if stopped else "NOREPORT" if cap else "ENDED"
+    reason = "" if running else "interrupted" if stopped else "hit the context cap, no handoff written" if cap and not m else ""
     if compactions: reason = (f"{reason} · " if reason else "") + f"compacted {compactions}x"
     return {
         "reason": reason,
@@ -314,7 +314,7 @@ def snapshot():
         for t in tasks:
             if t["id"] in main["notes"]["stopped"]: t["reason"] = t["reason"].replace("interrupted", "stopped by orchestrator")
             if t["id"] in main["notes"]["turns"] and t["status"] == "ENDED":
-                t["status"] = "CUT"; t["reason"] = f"hit the {main['notes']['turns'][t['id']]}-turn limit, no report"
+                t["status"] = "NOREPORT"; t["reason"] = f"hit the {main['notes']['turns'][t['id']]}-turn limit, no handoff written"
         branch = git(cwd, "rev-parse", "--abbrev-ref", "HEAD").strip() if os.path.isdir(cwd) else ""
         sess = {"id": sid, "title": title or sid[:8], "branch": branch, "job": jobs.get(sid), "main": main,
                 "tasks": tasks, "running": sum(t["running"] for t in tasks) + (1 if main["running"] else 0),
@@ -464,8 +464,8 @@ td.name span{color:var(--ink-3);font-weight:400;margin-left:8px;font-size:12.5px
 td.name .why{display:block;margin:2px 0 0;color:var(--warn);font-size:12px}
 .pill{display:inline-block;min-width:58px;text-align:center;font-size:11px;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:4px;background:var(--raise);border:1px solid var(--line-2);color:var(--ink-2)}
 .pill.DONE,.pill.PASS{color:var(--run);border-color:var(--ok-line);background:var(--ok-bg)}
-.pill.SPLIT{color:var(--warn);border-color:var(--warn-line);background:var(--warn-bg)}
-.pill.CAP,.pill.CUT{color:var(--warn);border-color:var(--warn-line);background:var(--warn-bg)}
+.pill.HANDOFF{color:var(--warn);border-color:var(--warn-line);background:var(--warn-bg)}
+.pill.NOREPORT{color:var(--warn);border-color:var(--warn-line);background:var(--warn-bg)}
 .pill.FAILED,.pill.FAIL,.pill.BLOCKED,.pill.STOPPED{color:var(--bad);border-color:var(--bad-line);background:var(--bad-bg)}
 tr.detail td{background:var(--raise);padding:12px 16px 14px}
 .tabs{display:flex;gap:14px;margin:0 0 10px;font-size:12.5px}
@@ -520,7 +520,7 @@ function table(tasks){
     const isOpen=open.has(t.id), tb=tab[t.id]||'report';
     const tl=t.events.slice().reverse().map(e=>`<li class="${e.k==='text'?'said':e.k==='compact'?'compact':''}"><span class=t>${hhmm(e.t)}</span><b>${esc(e.k==='text'?'said':e.k)}</b><span>${esc(e.v)}</span></li>`).join('');
     return `<tr class=row data-id="${t.id}" tabindex=0 aria-expanded="${isOpen}">
-      <td><span class="pill ${esc(t.status)}">${esc(t.status)}</span></td>
+      <td><span class="pill ${esc(t.status)}">${esc(t.status==='NOREPORT'?'NO REPORT':t.status)}</span></td>
       <td class=name>${esc(t.name)}<span>${esc(t.type)}</span>${t.reason?`<span class=why>${esc(t.reason)}</span>`:''}</td>
       <td class=num>${fmtK(t.context)} tok</td>
       <td class=num>${dur(t.started,t.ended)}</td>
